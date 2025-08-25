@@ -41,6 +41,9 @@ export const Navigation = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
+            <Link to="/therapist-registration" className="text-foreground hover:text-primary transition-colors">
+              For Therapists
+            </Link>
             <Button variant="ghost" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
