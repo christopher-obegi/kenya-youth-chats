@@ -22,6 +22,9 @@ export interface TherapistRegistrationData {
   location: string;
   hourlyRate: number;
   certifications: string[];
+  
+  // Documents
+  documents?: any[];
 }
 
 const initialFormData: TherapistRegistrationData = {
@@ -39,6 +42,7 @@ const initialFormData: TherapistRegistrationData = {
   location: "",
   hourlyRate: 0,
   certifications: [],
+  documents: [],
 };
 
 export function useTherapistRegistration() {
@@ -142,6 +146,7 @@ export function useTherapistRegistration() {
           education: formData.education,
           certifications: formData.certifications,
           languages: formData.languages,
+          documents: formData.documents || [],
           is_verified: false,
           is_available: false // Initially not available until verified
         });

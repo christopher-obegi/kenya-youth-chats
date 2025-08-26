@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { BasicInfoStep } from "@/components/therapist-registration/BasicInfoStep";
 import { ProfessionalInfoStep } from "@/components/therapist-registration/ProfessionalInfoStep";
 import { ExperienceStep } from "@/components/therapist-registration/ExperienceStep";
+import DocumentUploadStep from "@/components/therapist-registration/DocumentUploadStep";
 import { ReviewStep } from "@/components/therapist-registration/ReviewStep";
 import { useTherapistRegistration } from "@/hooks/useTherapistRegistration";
 
@@ -14,11 +15,13 @@ const steps = [
   { id: 1, title: "Basic Information", description: "Tell us about yourself" },
   { id: 2, title: "Professional Details", description: "Your credentials and specializations" },
   { id: 3, title: "Experience & Availability", description: "Your background and preferences" },
-  { id: 4, title: "Review & Submit", description: "Confirm your information" },
+  { id: 4, title: "Document Upload", description: "Upload verification documents" },
+  { id: 5, title: "Review & Submit", description: "Confirm your information" },
 ];
 
 export default function TherapistRegistration() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [documents, setDocuments] = useState<any[]>([]);
   const {
     formData,
     updateFormData,
@@ -30,8 +33,13 @@ export default function TherapistRegistration() {
   } = useTherapistRegistration();
 
   const handleNext = async () => {
-    const isValid = await validateStep(currentStep);
-    if (isValid && currentStep < steps.length) {
+    // Skip validation for document upload step
+    if (currentStep !== 4) {
+      const isValid = await validateStep(currentStep);
+      if (!isValid) return;
+    }
+    
+    if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -43,6 +51,8 @@ export default function TherapistRegistration() {
   };
 
   const handleSubmit = async () => {
+    // Update form data with documents before submitting
+    updateFormData({ documents });
     await submitApplication();
   };
 
@@ -142,35 +152,43 @@ export default function TherapistRegistration() {
               />
             )}
             {currentStep === 4 && (
-              <ReviewStep data={formData} />
+              <DocumentUploadStep 
+                isSubmitting={isSubmitting}
+                onDocumentsChange={setDocuments}
+              />
+            )}
+            {currentStep === 5 && (
+              <ReviewStep data={{ ...formData, documents }} />
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between pt-6 border-t">
-              <Button
-                variant="outline"
-                onClick={handlePrev}
-                disabled={currentStep === 1}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-
-              {currentStep < steps.length ? (
-                <Button onClick={handleNext} variant="cta">
-                  Next
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleSubmit} 
-                  variant="cta"
-                  disabled={isSubmitting}
+            {currentStep !== 4 && (
+              <div className="flex justify-between pt-6 border-t">
+                <Button
+                  variant="outline"
+                  onClick={handlePrev}
+                  disabled={currentStep === 1}
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Application"}
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Previous
                 </Button>
-              )}
-            </div>
+
+                {currentStep < steps.length ? (
+                  <Button onClick={handleNext} variant="cta">
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleSubmit} 
+                    variant="cta"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Application"}
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

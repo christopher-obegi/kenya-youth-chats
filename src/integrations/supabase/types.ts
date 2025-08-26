@@ -104,6 +104,60 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          account_reference: string | null
+          amount: number
+          booking_id: string
+          checkout_request_id: string | null
+          created_at: string | null
+          id: string
+          merchant_request_id: string | null
+          mpesa_receipt: string | null
+          phone: string
+          raw_response: Json | null
+          result_code: number | null
+          result_desc: string | null
+          status: string
+          transaction_date: number | null
+          user_id: string
+        }
+        Insert: {
+          account_reference?: string | null
+          amount: number
+          booking_id: string
+          checkout_request_id?: string | null
+          created_at?: string | null
+          id?: string
+          merchant_request_id?: string | null
+          mpesa_receipt?: string | null
+          phone: string
+          raw_response?: Json | null
+          result_code?: number | null
+          result_desc?: string | null
+          status?: string
+          transaction_date?: number | null
+          user_id: string
+        }
+        Update: {
+          account_reference?: string | null
+          amount?: number
+          booking_id?: string
+          checkout_request_id?: string | null
+          created_at?: string | null
+          id?: string
+          merchant_request_id?: string | null
+          mpesa_receipt?: string | null
+          phone?: string
+          raw_response?: Json | null
+          result_code?: number | null
+          result_desc?: string | null
+          status?: string
+          transaction_date?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
