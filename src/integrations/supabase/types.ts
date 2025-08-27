@@ -240,6 +240,7 @@ export type Database = {
           bio: string
           certifications: string[] | null
           created_at: string | null
+          documents: Json[] | null
           education: string
           hourly_rate: number
           id: string
@@ -257,6 +258,7 @@ export type Database = {
           bio?: string
           certifications?: string[] | null
           created_at?: string | null
+          documents?: Json[] | null
           education?: string
           hourly_rate?: number
           id?: string
@@ -274,6 +276,7 @@ export type Database = {
           bio?: string
           certifications?: string[] | null
           created_at?: string | null
+          documents?: Json[] | null
           education?: string
           hourly_rate?: number
           id?: string
