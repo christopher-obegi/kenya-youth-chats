@@ -115,6 +115,7 @@ export function useTherapistRegistration() {
       });
 
       if (authError) {
+        console.error("Auth error:", authError);
         toast({
           title: "Error",
           description: authError.message,
@@ -132,29 +133,52 @@ export function useTherapistRegistration() {
         return;
       }
 
-      // Create therapist profile
+      // Wait a moment for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update the profile with additional information
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          phone: formData.phone,
+          date_of_birth: formData.dateOfBirth,
+        })
+        .eq('id', authData.user.id);
+
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        // Don't fail here - the profile should have been created by the trigger
+        console.log("Continuing despite profile update error...");
+      }
+
+      // Create therapist profile with proper data types
+      const therapistData = {
+        user_id: authData.user.id,
+        license_number: formData.licenseNumber.trim(),
+        years_experience: Number(formData.yearsExperience) || 0,
+        bio: formData.bio.trim(),
+        specialization: formData.specializations.length > 0 ? formData.specializations : ['General'],
+        hourly_rate: Number(formData.hourlyRate) || 0,
+        location: formData.location.trim(),
+        education: formData.education.trim(),
+        certifications: formData.certifications || [],
+        languages: formData.languages.length > 0 ? formData.languages : ['English'],
+        documents: formData.documents || [],
+        is_verified: false,
+        is_available: false // Initially not available until verified
+      };
+
+      console.log("Inserting therapist data:", therapistData);
+
       const { error: therapistError } = await supabase
         .from('therapists')
-        .insert({
-          user_id: authData.user.id,
-          license_number: formData.licenseNumber,
-          years_experience: formData.yearsExperience,
-          bio: formData.bio,
-          specialization: formData.specializations,
-          hourly_rate: formData.hourlyRate,
-          location: formData.location,
-          education: formData.education,
-          certifications: formData.certifications,
-          languages: formData.languages,
-          documents: formData.documents || [],
-          is_verified: false,
-          is_available: false // Initially not available until verified
-        });
+        .insert(therapistData);
 
       if (therapistError) {
+        console.error("Therapist creation error:", therapistError);
         toast({
           title: "Error",
-          description: "Failed to create therapist profile",
+          description: `Failed to create therapist profile: ${therapistError.message}`,
           variant: "destructive"
         });
         return;
@@ -167,9 +191,10 @@ export function useTherapistRegistration() {
 
       setIsSubmitted(true);
     } catch (error) {
+      console.error("Unexpected error:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: `An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     } finally {
