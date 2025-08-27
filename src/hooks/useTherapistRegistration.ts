@@ -132,6 +132,28 @@ export function useTherapistRegistration() {
         return;
       }
 
+      // Create user profile first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone,
+          date_of_birth: formData.dateOfBirth,
+          role: 'therapist'
+        });
+
+      if (profileError) {
+        toast({
+          title: "Error",
+          description: "Failed to create user profile",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Create therapist profile
       const { error: therapistError } = await supabase
         .from('therapists')
