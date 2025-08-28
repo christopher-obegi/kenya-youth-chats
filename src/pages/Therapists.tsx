@@ -16,8 +16,8 @@ const Therapists = () => {
               Find someone who understands your needs and can help you on your journey to better mental health.
             </p>
           </div>
-          <TherapistGrid />
         </div>
+        <TherapistGrid />
       </main>
     </div>
   );

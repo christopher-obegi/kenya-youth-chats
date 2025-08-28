@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Clock, Languages } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { MapPin, Star, Clock, Languages, CheckCircle, Skeleton } from "lucide-react";
+import { TherapistFilters } from "@/components/therapist-search/TherapistFilters";
+import { BookingModal, BookingData } from "@/components/booking/BookingModal";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Therapist {
   id: string;
