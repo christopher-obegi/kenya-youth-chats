@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Star, Clock, Languages, CheckCircle, Skeleton } from "lucide-react";
+{"code":"rate-limited","mess, CheckCirron{:nYus @ibo i( 
+s si utroeas   *n in to pe
+nCngg)/cti; st-dd  "ae,  
+t -> fLere. 3b-:w
+l)pscNxR" ctlxfes:rxru , Clock, Languages, CheckCircle, Delete as Skeleton } from "lucide-react";
 import { TherapistFilters } from "@/components/therapist-search/TherapistFilters";
 import { BookingModal, BookingData } from "@/components/booking/BookingModal";
 import { useToast } from "@/components/ui/use-toast";
