@@ -6,9 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { MpesaPayment } from '@/components/payment/MpesaPayment';
 import { Card, CardContent } from '@/components/ui/card';
 import { CalendarDays, Clock, MessageCircle, Video, Phone, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Therapist {
   id: string;
@@ -61,23 +65,72 @@ export function BookingModal({ isOpen, onClose, therapist, onBookingConfirm }: B
   const [sessionType, setSessionType] = useState<'chat' | 'video' | 'audio'>('chat');
   const [duration, setDuration] = useState(60);
   const [notes, setNotes] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [bookingId, setBookingId] = useState<string>('');
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!selectedDate || !selectedTime) return;
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to book a session",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const totalAmount = (therapist.hourly_rate * duration) / 60;
+    try {
+      const totalAmount = (therapist.hourly_rate * duration) / 60;
+      const scheduledDateTime = new Date(selectedDate);
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      scheduledDateTime.setHours(hours, minutes, 0, 0);
 
-    const bookingData: BookingData = {
-      therapistId: therapist.id,
-      date: selectedDate,
-      timeSlot: selectedTime,
-      sessionType,
-      duration,
-      notes,
-      totalAmount
-    };
+      // Create appointment record
+      const { data: appointment, error: appointmentError } = await supabase
+        .from('appointments')
+        .insert({
+          patient_id: user.id,
+          therapist_id: therapist.user_id,
+          scheduled_at: scheduledDateTime.toISOString(),
+          duration: duration,
+          status: 'pending',
+          notes: notes || null,
+          session_type: sessionType
+        })
+        .select()
+        .single();
 
-    onBookingConfirm(bookingData);
+      if (appointmentError) throw appointmentError;
+
+      setBookingId(appointment.id);
+      setShowPayment(true);
+
+    } catch (error: any) {
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Failed to create appointment",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handlePaymentSuccess = (paymentId: string) => {
+    toast({
+      title: "Payment Successful",
+      description: "Your session has been booked successfully!",
+    });
+    onClose();
+    // Optionally redirect to dashboard or session page
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast({
+      title: "Payment Failed",
+      description: error,
+      variant: "destructive"
+    });
   };
 
   const totalAmount = selectedDate && selectedTime ? (therapist.hourly_rate * duration) / 60 : 0;
@@ -85,6 +138,20 @@ export function BookingModal({ isOpen, onClose, therapist, onBookingConfirm }: B
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        {showPayment ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Complete Payment</DialogTitle>
+            </DialogHeader>
+            <MpesaPayment
+              amount={totalAmount}
+              bookingId={bookingId}
+              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentError={handlePaymentError}
+            />
+          </>
+        ) : (
+          <>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <CalendarDays className="h-5 w-5" />
@@ -239,6 +306,8 @@ export function BookingModal({ isOpen, onClose, therapist, onBookingConfirm }: B
             </Button>
           </div>
         </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

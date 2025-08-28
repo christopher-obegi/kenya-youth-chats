@@ -31,6 +31,10 @@ interface Therapist {
 export const TherapistGrid = () => {
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchTherapists();
@@ -50,7 +54,7 @@ export const TherapistGrid = () => {
         `)
         .eq('is_verified', true)
         .eq('is_available', true)
-        .limit(6);
+        .limit(12);
 
       if (error) throw error;
       setTherapists(data || []);
@@ -59,6 +63,25 @@ export const TherapistGrid = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBookSession = (therapist: Therapist) => {
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to book a session",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedTherapist(therapist);
+    setShowBookingModal(true);
+  };
+
+  const handleBookingConfirm = (bookingData: BookingData) => {
+    // This is now handled in the BookingModal component
+    setShowBookingModal(false);
+    setSelectedTherapist(null);
   };
 
   if (loading) {
@@ -155,7 +178,11 @@ export const TherapistGrid = () => {
                 </div>
 
                 <Button className="w-full" variant="default">
-                  Book Session
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={() => handleBookSession(therapist)}
+                >
                 </Button>
               </CardContent>
             </Card>
@@ -166,6 +193,19 @@ export const TherapistGrid = () => {
           <div className="text-center py-12">
             <p className="text-muted-foreground">No therapists available at the moment.</p>
           </div>
+        )}
+
+        {/* Booking Modal */}
+        {selectedTherapist && (
+          <BookingModal
+            isOpen={showBookingModal}
+            onClose={() => {
+              setShowBookingModal(false);
+              setSelectedTherapist(null);
+            }}
+            therapist={selectedTherapist}
+            onBookingConfirm={handleBookingConfirm}
+          />
         )}
       </div>
     </section>

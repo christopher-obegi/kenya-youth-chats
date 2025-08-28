@@ -13,6 +13,7 @@ export function Navigation() {
   const navItems = [
     { href: "/", label: "Home" },
     { href: "/therapists", label: "Find Therapists" },
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
