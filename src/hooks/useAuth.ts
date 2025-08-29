@@ -70,7 +70,7 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -86,8 +86,34 @@ export const useAuth = () => {
       return { error };
     }
     
-    // Redirect to dashboard after successful login
-    navigate('/dashboard');
+    // Get user profile to check role and redirect accordingly
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profile?.role === 'patient') {
+        navigate('/patient-dashboard');
+      } else if (profile?.role === 'therapist') {
+        // Check if therapist has completed profile
+        const { data: therapist } = await supabase
+          .from('therapists')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        if (therapist) {
+          navigate('/therapist-dashboard');
+        } else {
+          navigate('/therapist-registration');
+        }
+      } else {
+        navigate('/dashboard');
+      }
+    }
+    
     return { error: null };
   };
 
