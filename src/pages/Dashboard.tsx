@@ -29,21 +29,8 @@ interface Appointment {
   duration: number;
   status: string;
   notes?: string;
-  therapist?: {
-    profiles: {
-      first_name: string;
-      last_name: string;
-      avatar_url?: string;
-    };
-    specialization: string[];
-  };
-  patient?: {
-    profiles: {
-      first_name: string;
-      last_name: string;
-      avatar_url?: string;
-    };
-  };
+  therapist_id: string;
+  patient_id: string;
 }
 
 interface UserProfile {
@@ -61,7 +48,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [questionnaireType, setQuestionnaireType] = useState<'phq7' | 'gad7'>('phq7');
-  const [questionnaireResults, setQuestionnaireResults] = useState<QuestionnaireResults | null>(null);
+  const [questionnaireResults, setQuestionnaireResults] = useState<any>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -91,24 +78,7 @@ const Dashboard = () => {
       // Fetch appointments based on user role
       let appointmentsQuery = supabase
         .from('appointments')
-        .select(`
-          *,
-          therapist:therapist_id (
-            profiles:user_id (
-              first_name,
-              last_name,
-              avatar_url
-            ),
-            specialization
-          ),
-          patient:patient_id (
-            profiles:user_id (
-              first_name,
-              last_name,
-              avatar_url
-            )
-          )
-        `)
+        .select('*')
         .order('scheduled_at', { ascending: true });
 
       if (profileData.role === 'patient') {
@@ -132,7 +102,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleQuestionnaireComplete = (results: QuestionnaireResults) => {
+  const handleQuestionnaireComplete = (results: any) => {
     setQuestionnaireResults(results);
     setShowQuestionnaire(false);
   };
@@ -314,23 +284,23 @@ const Dashboard = () => {
                     <div className="space-y-4">
                       {upcomingAppointments.map((appointment) => {
                         const { date, time } = formatDateTime(appointment.scheduled_at);
-                        const otherPerson = profile?.role === 'patient' 
-                          ? appointment.therapist?.profiles 
-                          : appointment.patient?.profiles;
+                        // For now, just show the appointment without names
+                        const displayName = profile?.role === 'patient' 
+                          ? 'Your Therapist' 
+                          : 'Your Patient';
                         
                         return (
                           <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center gap-4">
-                              <Avatar>
-                                <AvatarImage src={otherPerson?.avatar_url} />
-                                <AvatarFallback>
-                                  {otherPerson?.first_name?.[0]}{otherPerson?.last_name?.[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {otherPerson?.first_name} {otherPerson?.last_name}
-                                </p>
+                               <Avatar>
+                                 <AvatarFallback>
+                                   {displayName[0]}
+                                 </AvatarFallback>
+                               </Avatar>
+                               <div>
+                                 <p className="font-medium">
+                                   {displayName}
+                                 </p>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Calendar className="h-4 w-4" />
                                   {date} at {time}
@@ -368,23 +338,22 @@ const Dashboard = () => {
                     <div className="space-y-3">
                       {recentAppointments.map((appointment) => {
                         const { date, time } = formatDateTime(appointment.scheduled_at);
-                        const otherPerson = profile?.role === 'patient' 
-                          ? appointment.therapist?.profiles 
-                          : appointment.patient?.profiles;
+                        const displayName = profile?.role === 'patient' 
+                          ? 'Your Therapist' 
+                          : 'Your Patient';
                         
                         return (
                           <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src={otherPerson?.avatar_url} />
-                                <AvatarFallback className="text-sm">
-                                  {otherPerson?.first_name?.[0]}{otherPerson?.last_name?.[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium text-sm">
-                                  {otherPerson?.first_name} {otherPerson?.last_name}
-                                </p>
+                               <Avatar className="h-10 w-10">
+                                 <AvatarFallback className="text-sm">
+                                   {displayName[0]}
+                                 </AvatarFallback>
+                               </Avatar>
+                               <div>
+                                 <p className="font-medium text-sm">
+                                   {displayName}
+                                 </p>
                                 <p className="text-xs text-muted-foreground">{date}</p>
                               </div>
                             </div>

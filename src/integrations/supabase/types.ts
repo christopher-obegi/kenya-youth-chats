@@ -22,6 +22,7 @@ export type Database = {
           notes: string | null
           patient_id: string
           scheduled_at: string
+          session_type: string | null
           status: string
           therapist_id: string
           updated_at: string | null
@@ -33,6 +34,7 @@ export type Database = {
           notes?: string | null
           patient_id: string
           scheduled_at: string
+          session_type?: string | null
           status?: string
           therapist_id: string
           updated_at?: string | null
@@ -44,6 +46,7 @@ export type Database = {
           notes?: string | null
           patient_id?: string
           scheduled_at?: string
+          session_type?: string | null
           status?: string
           therapist_id?: string
           updated_at?: string | null
@@ -235,11 +238,64 @@ export type Database = {
           },
         ]
       }
+      session_feedback: {
+        Row: {
+          appointment_id: string
+          created_at: string | null
+          feedback: string | null
+          id: string
+          patient_id: string
+          rating: number
+          therapist_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          patient_id: string
+          rating: number
+          therapist_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          patient_id?: string
+          rating?: number
+          therapist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_feedback_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_feedback_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_feedback_therapist_id_fkey"
+            columns: ["therapist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       therapists: {
         Row: {
           bio: string
           certifications: string[] | null
           created_at: string | null
+          documents: Json | null
           education: string
           hourly_rate: number
           id: string
@@ -257,6 +313,7 @@ export type Database = {
           bio?: string
           certifications?: string[] | null
           created_at?: string | null
+          documents?: Json | null
           education?: string
           hourly_rate?: number
           id?: string
@@ -274,6 +331,7 @@ export type Database = {
           bio?: string
           certifications?: string[] | null
           created_at?: string | null
+          documents?: Json | null
           education?: string
           hourly_rate?: number
           id?: string

@@ -30,19 +30,15 @@ interface SessionData {
   status: string;
   notes?: string;
   session_type?: 'chat' | 'video' | 'audio';
-  therapist: {
-    profiles: {
-      first_name: string;
-      last_name: string;
-      avatar_url?: string;
-    };
+  therapist?: {
+    first_name: string;
+    last_name: string;
+    avatar_url?: string;
   };
-  patient: {
-    profiles: {
-      first_name: string;
-      last_name: string;
-      avatar_url?: string;
-    };
+  patient?: {
+    first_name: string;
+    last_name: string;
+    avatar_url?: string;
   };
 }
 
@@ -84,23 +80,7 @@ const SessionRoom = () => {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          therapist:therapist_id (
-            profiles:user_id (
-              first_name,
-              last_name,
-              avatar_url
-            )
-          ),
-          patient:patient_id (
-            profiles:user_id (
-              first_name,
-              last_name,
-              avatar_url
-            )
-          )
-        `)
+        .select('*')
         .eq('id', appointmentId)
         .single();
 
@@ -127,7 +107,42 @@ const SessionRoom = () => {
         return;
       }
 
-      setSessionData(data);
+      // Get therapist and patient names separately if needed
+      let therapistData = null;
+      let patientData = null;
+
+      if (data.therapist_id) {
+        const { data: therapistProfile } = await supabase
+          .from('therapists')
+          .select(`
+            profiles!therapists_user_id_fkey (
+              first_name,
+              last_name,
+              avatar_url
+            )
+          `)
+          .eq('user_id', data.therapist_id)
+          .single();
+        
+        therapistData = therapistProfile?.profiles;
+      }
+
+      if (data.patient_id) {
+        const { data: patientProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, avatar_url')
+          .eq('id', data.patient_id)
+          .single();
+        
+        patientData = patientProfile;
+      }
+
+      setSessionData({
+        ...data,
+        session_type: (data.session_type || 'chat') as 'chat' | 'video' | 'audio',
+        therapist: therapistData,
+        patient: patientData
+      });
       
       // Auto-start session if it's time
       const sessionTime = new Date(data.scheduled_at);
@@ -238,23 +253,23 @@ const SessionRoom = () => {
   }
 
   if (showFeedback) {
-    const isPatient = user?.id === sessionData.patient_id;
-    const therapistName = `${sessionData.therapist.profiles.first_name} ${sessionData.therapist.profiles.last_name}`;
-    
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <SessionFeedback
-          appointmentId={sessionData.id}
-          therapistId={sessionData.therapist_id}
-          therapistName={therapistName}
-          onFeedbackSubmitted={() => navigate('/dashboard')}
-        />
-      </div>
-    );
+  const isPatient = user?.id === sessionData.patient_id;
+  const therapistName = sessionData.therapist ? `${sessionData.therapist.first_name} ${sessionData.therapist.last_name}` : 'Therapist';
+  
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <SessionFeedback
+        appointmentId={sessionData.id}
+        therapistId={sessionData.therapist_id}
+        therapistName={therapistName}
+        onFeedbackSubmitted={() => navigate('/dashboard')}
+      />
+    </div>
+  );
   }
 
   const isPatient = user?.id === sessionData.patient_id;
-  const otherPerson = isPatient ? sessionData.therapist.profiles : sessionData.patient.profiles;
+  const otherPerson = isPatient ? sessionData.therapist : sessionData.patient;
   const sessionType = sessionData.session_type || 'chat';
 
   return (
@@ -327,7 +342,7 @@ const SessionRoom = () => {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">
-                Your session with {otherPerson.first_name} {otherPerson.last_name} is ready to begin.
+                Your session with {otherPerson?.first_name || 'Unknown'} {otherPerson?.last_name || ''} is ready to begin.
               </p>
               <Alert>
                 <AlertDescription>
@@ -346,8 +361,8 @@ const SessionRoom = () => {
                 appointmentId={sessionData.id}
                 therapistId={sessionData.therapist_id}
                 patientId={sessionData.patient_id}
-                therapistName={`${sessionData.therapist.profiles.first_name} ${sessionData.therapist.profiles.last_name}`}
-                patientName={`${sessionData.patient.profiles.first_name} ${sessionData.patient.profiles.last_name}`}
+                therapistName={sessionData.therapist ? `${sessionData.therapist.first_name} ${sessionData.therapist.last_name}` : 'Therapist'}
+                patientName={sessionData.patient ? `${sessionData.patient.first_name} ${sessionData.patient.last_name}` : 'Patient'}
                 sessionType={sessionType}
                 onEndSession={endSession}
               />
@@ -366,7 +381,7 @@ const SessionRoom = () => {
                       {sessionType === 'video' ? 'Video Call' : 'Voice Call'} Active
                     </h3>
                     <p className="text-muted-foreground">
-                      Connected with {otherPerson.first_name} {otherPerson.last_name}
+                      Connected with {otherPerson?.first_name || 'Unknown'} {otherPerson?.last_name || ''}
                     </p>
                     <p className="text-sm text-muted-foreground mt-2">
                       Duration: {formatTime(elapsedTime)}

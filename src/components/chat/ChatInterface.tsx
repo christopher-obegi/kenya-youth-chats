@@ -15,7 +15,7 @@ interface Message {
   sender_id: string;
   receiver_id: string;
   created_at: string;
-  sender?: {
+  profiles?: {
     first_name: string;
     last_name: string;
     avatar_url?: string;
@@ -68,7 +68,7 @@ export function ChatInterface({
         .from('messages')
         .select(`
           *,
-          sender:sender_id (
+          profiles!messages_sender_id_fkey (
             first_name,
             last_name,
             avatar_url

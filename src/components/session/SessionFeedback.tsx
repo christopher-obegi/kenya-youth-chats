@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Star, Heart, ThumbsUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SessionFeedbackProps {
   appointmentId: string;
@@ -24,6 +25,7 @@ export function SessionFeedback({
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleRatingClick = (value: number) => {
     setRating(value);
@@ -42,12 +44,13 @@ export function SessionFeedback({
     setIsSubmitting(true);
 
     try {
-      // Create feedback record (you'll need to create this table)
+      // Create feedback record
       const { error: feedbackError } = await supabase
         .from('session_feedback')
         .insert({
           appointment_id: appointmentId,
           therapist_id: therapistId,
+          patient_id: user?.id,
           rating: rating,
           feedback: feedback.trim() || null
         });

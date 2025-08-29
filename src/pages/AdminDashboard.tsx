@@ -24,7 +24,7 @@ interface TherapistApplication {
   languages: string[];
   is_verified: boolean;
   is_available: boolean;
-  documents?: any[];
+  documents?: any;
   created_at: string;
   profiles?: {
     first_name: string;
