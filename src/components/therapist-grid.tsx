@@ -1,8 +1,11 @@
-{"code":"rate-limited","mess, CheckCirron{:nYus @ibo i( 
-s si utroeas   *n in to pe
-nCngg)/cti; st-dd  "ae,  
-t -> fLere. 3b-:w
-l)pscNxR" ctlxfes:rxru , Clock, Languages, CheckCircle, Delete as Skeleton } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MapPin, Clock, Languages, CheckCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TherapistFilters } from "@/components/therapist-search/TherapistFilters";
 import { BookingModal, BookingData } from "@/components/booking/BookingModal";
 import { useToast } from "@/components/ui/use-toast";
@@ -17,6 +20,7 @@ interface Therapist {
   years_experience: number;
   languages: string[];
   location: string;
+  education: string;
   is_verified: boolean;
   is_available: boolean;
   profiles: {
@@ -175,12 +179,12 @@ export const TherapistGrid = () => {
                   </div>
                 </div>
 
-                <Button className="w-full" variant="default">
                 <Button 
                   className="w-full" 
                   variant="default"
                   onClick={() => handleBookSession(therapist)}
                 >
+                  Book Session
                 </Button>
               </CardContent>
             </Card>
